@@ -1,0 +1,15 @@
+# ===== סודות — לעולם לא ל-GitHub =====
+api_config.json
+**/.env
+**/.env.local
+*.pem
+
+# ===== תלויות ובנייה =====
+**/node_modules
+app/dist
+__pycache__/
+*.pyc
+
+# ===== מערכת =====
+.DS_Store
+Thumbs.db

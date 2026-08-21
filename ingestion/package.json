@@ -1,0 +1,12 @@
+{
+  "name": "social-dash-ingestion",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "node seed_from_datajs.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "pg": "^8.23.0"
+  }
+}

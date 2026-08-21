@@ -1,0 +1,18 @@
+services:
+  web:
+    build:
+      context: ./app
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  # שירות משיכת נתונים לפי דרישה:  docker compose run --rm ingest
+  ingest:
+    build:
+      context: ./ingestion
+    env_file:
+      - ./ingestion/.env
+    profiles: ["tools"]

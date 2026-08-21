@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דאשבורד שיווק דיגיטלי</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+<style>
+:root{
+  --bg:#0d1117; --card:#161b22; --card2:#1c2330; --border:#2d3748;
+  --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --green:#3fb950;
+  --red:#f85149; --yellow:#d29922;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI","Heebo",Arial,sans-serif}
+body{background:var(--bg);color:var(--text);min-height:100vh;padding:24px}
+.container{max-width:1320px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+h1{font-size:26px;font-weight:700}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.range-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:8px;cursor:pointer;font-size:14px;transition:.15s}
+.range-btn:hover{border-color:var(--accent)}
+.range-btn.active{background:var(--accent);color:#0d1117;font-weight:700;border-color:var(--accent)}
+.stamp{color:var(--muted);font-size:12px;width:100%;text-align:left}
+.demo-banner{background:linear-gradient(90deg,#3a2e0e,#2a230d);border:1px solid var(--yellow);border-radius:10px;padding:10px 16px;font-size:13.5px;color:#e3c56d;margin-bottom:20px}
+.demo-banner a{color:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.kpi .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+.kpi .value{font-size:26px;font-weight:700}
+.kpi .delta{font-size:12.5px;margin-top:6px}
+.delta.up{color:var(--green)} .delta.down{color:var(--red)} .delta.flat{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:22px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px}
+.card h2{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.chart-wrap{position:relative;height:300px}
+.channels{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:22px}
+.ch-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;border-top:3px solid var(--accent)}
+.ch-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ch-name{font-weight:700;font-size:15px}
+.badge{font-size:10.5px;padding:2px 8px;border-radius:20px;border:1px solid var(--yellow);color:var(--yellow)}
+.badge.live{border-color:var(--green);color:var(--green)}
+.ch-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.ch-stat .l{color:var(--muted);font-size:11.5px}
+.ch-stat .v{font-size:16px;font-weight:600;margin-top:1px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:right;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:var(--accent)}
+td{padding:9px 10px;border-bottom:1px solid #21283355}
+tr:hover td{background:#1c233055}
+.plat-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.dot{width:9px;height:9px;border-radius:50%}
+.type-tag{font-size:11px;padding:2px 8px;border-radius:12px}
+.type-organic{background:#1a3a2422;color:var(--green);border:1px solid #2ea04366}
+.type-paid{background:#34250b22;color:var(--yellow);border:1px solid #d2992266}
+.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.insight{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13.5px;line-height:1.55}
+.insight .ti{font-weight:700;color:var(--accent);margin-bottom:5px;font-size:13px}
+.insight b{color:var(--text)}
+footer{color:var(--muted);font-size:12px;text-align:center;margin-top:28px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div>
+    <h1 id="title"></h1>
+    <div class="sub" id="subtitle"></div>
+  </div>
+  <div class="controls" id="rangeBtns"></div>
+  <div class="stamp" id="stamp"></div>
+</header>
+
+<div class="demo-banner" id="demoBanner" style="display:none">
+  ⚠️ חלק מהנתונים הם <b>נתוני דמו</b>. חיבור Supermetrics זמין ל-Google Ads ו-Facebook Ads;
+  לחידוש המנוי: <a href="https://supermetrics.com/pricing" target="_blank">supermetrics.com/pricing</a>.
+  לאחר החידוש בקשו מ-Claude "רענן את הדאשבורד".
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>💸 הוצאות פרסום יומיות</h2>
+    <div class="chart-wrap"><canvas id="spendChart"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>📊 מעורבות לפי ערוץ</h2>
+    <div class="chart-wrap"><canvas id="engChart"></canvas></div>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h2>👁️ חשיפה / Reach יומי — ערוצים אורגניים</h2>
+    <div class="chart-wrap"><canvas id="reachChart"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>🧠 תובנות אוטומטיות</h2>
+    <div class="insights" id="insights" style="grid-template-columns:1fr"></div>
+  </div>
+</div>
+
+<h2 style="font-size:17px;margin:4px 0 12px">📡 ערוצים</h2>
+<div class="channels" id="channels"></div>
+
+<div class="card" style="margin-bottom:22px">
+  <h2>🏆 פוסטים מובילים <span style="color:var(--muted);font-size:12px;font-weight:400">(לחיצה על כותרת עמודה ממיינת)</span></h2>
+  <div style="overflow-x:auto"><table id="postsTable">
+    <thead><tr>
+      <th data-k="platform">פלטפורמה</th><th data-k="title">פוסט</th><th data-k="date">תאריך</th>
+      <th data-k="type">סוג</th><th data-k="reach">חשיפה</th><th data-k="likes">לייקים</th>
+      <th data-k="comments">תגובות</th><th data-k="shares">שיתופים</th><th data-k="er">מעורבות %</th>
+    </tr></thead><tbody></tbody>
+  </table></div>
+</div>
+
+<footer>
+  עריכת פרמטרים: <b>config.js</b> · נתונים: <b>data.js</b> · יצירת דמו מחדש: <b>generate_demo_data.py</b><br>
+  נבנה עם Claude · הנתונים מתרעננים ע"י החלפת data.js בלבד — אין צורך לגעת בקוד הדף
+</footer>
+</div>
+
+<script>
+const CFG = window.DASH_CONFIG, DATA = window.DASH_DATA;
+const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+"M" : n >= 1e3 ? (n/1e3).toFixed(1)+"K" : Math.round(n).toLocaleString();
+const money = n => CFG.currency + Math.round(n).toLocaleString();
+let range = CFG.defaultRange, charts = {};
+
+const enabled = k => CFG.channels[k] && CFG.channels[k].enabled;
+const chKeys = Object.keys(CFG.channels).filter(enabled);
+const paidKeys = chKeys.filter(k => CFG.channels[k].kind === "paid");
+const orgKeys = chKeys.filter(k => CFG.channels[k].kind === "organic");
+
+function lastN(arr, n){ return arr.slice(-n); }
+function prevN(arr, n){ return arr.slice(-2*n, -n); }
+function sum(arr, f){ return arr.reduce((a,b)=>a+(f(b)||0),0); }
+function deltaHtml(cur, prev){
+  if(!prev) return '<span class="delta flat">—</span>';
+  const p = ((cur-prev)/prev*100);
+  const cls = p > 1 ? "up" : p < -1 ? "down" : "flat";
+  const arrow = p > 1 ? "▲" : p < -1 ? "▼" : "•";
+  return `<span class="delta ${cls}">${arrow} ${Math.abs(p).toFixed(1)}% מול תקופה קודמת</span>`;
+}
+
+function engOf(d){ return (d.likes||0)+(d.comments||0)+(d.shares||0); }
+
+function render(){
+  // ---- header ----
+  document.getElementById("title").textContent = CFG.title;
+  document.getElementById("subtitle").textContent = CFG.subtitle;
+  document.getElementById("stamp").textContent =
+    "עודכן לאחרונה: " + new Date(DATA.generatedAt).toLocaleString("he-IL") + " · טווח: " + range + " ימים אחרונים";
+  if (CFG.showDemoBadge && DATA.isDemo) document.getElementById("demoBanner").style.display = "block";
+
+  // ---- KPIs ----
+  let spend=0, spendPrev=0, imp=0, impPrev=0, clicks=0, reach=0, reachPrev=0, eng=0, engPrev=0, followers=0;
+  paidKeys.forEach(k=>{
+    const d = DATA.channels[k].daily;
+    spend += sum(lastN(d,range), x=>x.spend);   spendPrev += sum(prevN(d,range), x=>x.spend);
+    imp   += sum(lastN(d,range), x=>x.impressions); impPrev += sum(prevN(d,range), x=>x.impressions);
+    clicks+= sum(lastN(d,range), x=>x.clicks);
+  });
+  orgKeys.forEach(k=>{
+    const d = DATA.channels[k].daily;
+    reach += sum(lastN(d,range), x=>x.reach);  reachPrev += sum(prevN(d,range), x=>x.reach);
+    eng   += sum(lastN(d,range), engOf);       engPrev   += sum(prevN(d,range), engOf);
+    const last = d[d.length-1]; followers += last.followers||0;
+  });
+  const kpis = [
+    {label:"הוצאת פרסום כוללת", value:money(spend), d:deltaHtml(spend,spendPrev)},
+    {label:"חשיפות ממומנות", value:fmt(imp), d:deltaHtml(imp,impPrev)},
+    {label:"קליקים (ממומן)", value:fmt(clicks), d:`<span class="delta flat">CPC ממוצע ${CFG.currency}${clicks?(spend/clicks).toFixed(2):"0"}</span>`},
+    {label:"חשיפה אורגנית", value:fmt(reach), d:deltaHtml(reach,reachPrev)},
+    {label:"מעורבות אורגנית", value:fmt(eng), d:deltaHtml(eng,engPrev)},
+    {label:"סה\"כ עוקבים", value:fmt(followers), d:'<span class="delta flat">בכל הערוצים</span>'}
+  ];
+  document.getElementById("kpis").innerHTML = kpis.map(k=>
+    `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div>${k.d}</div>`).join("");
+
+  // ---- channel cards ----
+  document.getElementById("channels").innerHTML = chKeys.map(k=>{
+    const cfg = CFG.channels[k], ch = DATA.channels[k], d = lastN(ch.daily, range);
+    const live = !ch.isDemo;
+    const badge = CFG.showDemoBadge ? `<span class="badge ${live?'live':''}">${live?'● מחובר':'דמו'}</span>` : "";
+    let stats;
+    if (cfg.kind === "paid"){
+      const s = sum(d,x=>x.spend), c = sum(d,x=>x.clicks), i = sum(d,x=>x.impressions), cv = sum(d,x=>x.conversions);
+      stats = [["הוצאה",money(s)],["חשיפות",fmt(i)],["קליקים",fmt(c)],["המרות",fmt(cv)]];
+    } else {
+      const r = sum(d,x=>x.reach), l = sum(d,x=>x.likes), cm = sum(d,x=>x.comments), sh = sum(d,x=>x.shares);
+      const fl = ch.daily[ch.daily.length-1].followers;
+      stats = [["חשיפה",fmt(r)],["לייקים",fmt(l)],["תגובות",fmt(cm)],["שיתופים",fmt(sh)],["עוקבים",fmt(fl)],
+               ["מעורבות %", r ? ((l+cm+sh)/r*100).toFixed(1)+"%" : "0%"]];
+    }
+    return `<div class="ch-card" style="border-top-color:${cfg.color}">
+      <div class="ch-head"><span class="ch-name">${cfg.name}</span>${badge}</div>
+      <div class="ch-stats">${stats.map(s=>`<div class="ch-stat"><div class="l">${s[0]}</div><div class="v">${s[1]}</div></div>`).join("")}</div>
+    </div>`;
+  }).join("");
+
+  renderCharts();
+  renderPosts();
+  renderInsights(spend, spendPrev, reach, eng);
+}
+
+function renderCharts(){
+  Object.values(charts).forEach(c=>c.destroy()); charts={};
+  Chart.defaults.color = "#8b949e"; Chart.defaults.borderColor = "#2d374855";
+  const labels = lastN(DATA.channels[paidKeys[0]||orgKeys[0]].daily, range)
+    .map(x=>new Date(x.date).toLocaleDateString("he-IL",{day:"numeric",month:"numeric"}));
+
+  // spend stacked bars
+  const spendDs = paidKeys.map(k=>({
+    label: CFG.channels[k].name, backgroundColor: CFG.channels[k].color,
+    data: lastN(DATA.channels[k].daily, range).map(x=>x.spend)
+  }));
+  if (CFG.dailySpendTarget > 0) spendDs.push({type:"line", label:"יעד יומי", borderColor:"#f85149",
+    borderDash:[6,4], pointRadius:0, data: labels.map(()=>CFG.dailySpendTarget)});
+  charts.spend = new Chart(spendChart, {type:"bar",
+    data:{labels, datasets:spendDs},
+    options:{responsive:true, maintainAspectRatio:false,
+      scales:{x:{stacked:true,ticks:{maxTicksLimit:12}}, y:{stacked:true,ticks:{callback:v=>CFG.currency+fmt(v)}}},
+      plugins:{legend:{position:"bottom",rtl:true}}}});
+
+  // engagement doughnut
+  charts.eng = new Chart(engChart, {type:"doughnut",
+    data:{labels: orgKeys.map(k=>CFG.channels[k].name),
+      datasets:[{data: orgKeys.map(k=>sum(lastN(DATA.channels[k].daily,range), engOf)),
+        backgroundColor: orgKeys.map(k=>CFG.channels[k].color), borderColor:"#161b22", borderWidth:2}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:"bottom",rtl:true}}}});
+
+  // reach lines
+  charts.reach = new Chart(reachChart, {type:"line",
+    data:{labels, datasets: orgKeys.map(k=>({
+      label: CFG.channels[k].name, borderColor: CFG.channels[k].color,
+      backgroundColor: CFG.channels[k].color+"22", tension:.35, pointRadius:0, borderWidth:2,
+      data: lastN(DATA.channels[k].daily, range).map(x=>x.reach)}))},
+    options:{responsive:true, maintainAspectRatio:false, interaction:{mode:"index",intersect:false},
+      scales:{x:{ticks:{maxTicksLimit:12}}, y:{ticks:{callback:fmt}}},
+      plugins:{legend:{position:"bottom",rtl:true}}}});
+}
+
+let sortKey = "reach", sortDir = -1;
+function renderPosts(){
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-range);
+  let posts = DATA.posts.filter(p=>enabled(p.platform) && new Date(p.date) >= cutoff)
+    .map(p=>({...p, er: p.reach ? (engOf(p)/p.reach*100) : 0}));
+  posts.sort((a,b)=> (a[sortKey] > b[sortKey] ? 1 : -1) * sortDir);
+  posts = posts.slice(0, CFG.topPostsCount);
+  document.querySelector("#postsTable tbody").innerHTML = posts.map(p=>{
+    const c = CFG.channels[p.platform];
+    return `<tr>
+      <td><span class="plat-chip"><span class="dot" style="background:${c.color}"></span>${c.name}</span></td>
+      <td>${p.title}</td>
+      <td>${new Date(p.date).toLocaleDateString("he-IL")}</td>
+      <td><span class="type-tag type-${p.type}">${p.type==="organic"?"אורגני":"ממומן"}</span></td>
+      <td>${fmt(p.reach)}</td><td>${fmt(p.likes)}</td><td>${fmt(p.comments)}</td>
+      <td>${fmt(p.shares)}</td><td>${p.er.toFixed(1)}%</td></tr>`;
+  }).join("") || `<tr><td colspan="9" style="color:var(--muted)">אין פוסטים בטווח שנבחר</td></tr>`;
+}
+document.querySelectorAll("#postsTable th").forEach(th=>th.onclick=()=>{
+  const k = th.dataset.k;
+  if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = -1; }
+  renderPosts();
+});
+
+function renderInsights(spend, spendPrev, reach, eng){
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-range);
+  const inRange = DATA.posts.filter(p=>enabled(p.platform) && new Date(p.date) >= cutoff);
+  const organic = inRange.filter(p=>p.type==="organic");
+  const topOrg = [...organic].sort((a,b)=>b.reach-a.reach)[0];
+  const topEng = [...inRange].sort((a,b)=>(engOf(b)/(b.reach||1))-(engOf(a)/(a.reach||1)))[0];
+  const bestCh = orgKeys.map(k=>({k, er:(()=>{const d=lastN(DATA.channels[k].daily,range);
+      const r=sum(d,x=>x.reach); return r? sum(d,engOf)/r*100 : 0})()}))
+    .sort((a,b)=>b.er-a.er)[0];
+  // best/worst CPC among paid
+  const cpcRows = paidKeys.map(k=>{const d=lastN(DATA.channels[k].daily,range);
+    const c=sum(d,x=>x.clicks); return {k, cpc: c? sum(d,x=>x.spend)/c : 0}}).filter(x=>x.cpc>0).sort((a,b)=>a.cpc-b.cpc);
+
+  const items = [];
+  if (topOrg) items.push({t:"🥇 הפוסט האורגני עם הכי הרבה חשיפה",
+    h:`<b>"${topOrg.title}"</b> ב${CFG.channels[topOrg.platform].name} — ${fmt(topOrg.reach)} חשיפות, ${fmt(engOf(topOrg))} אינטראקציות.`});
+  if (topEng) items.push({t:"❤️ אחוז המעורבות הגבוה ביותר",
+    h:`<b>"${topEng.title}"</b> — ${(engOf(topEng)/(topEng.reach||1)*100).toFixed(1)}% מעורבות (${fmt(topEng.comments)} תגובות, ${fmt(topEng.shares)} שיתופים).`});
+  if (bestCh) items.push({t:"📈 הערוץ האורגני המוביל",
+    h:`<b>${CFG.channels[bestCh.k].name}</b> עם ${bestCh.er.toFixed(1)}% מעורבות ממוצעת בטווח שנבחר.`});
+  if (cpcRows.length) items.push({t:"💰 יעילות ממומן",
+    h:`ה-CPC הזול ביותר: <b>${CFG.channels[cpcRows[0].k].name}</b> (${CFG.currency}${cpcRows[0].cpc.toFixed(2)})` +
+      (cpcRows[1]?` לעומת ${CFG.currency}${cpcRows[cpcRows.length-1].cpc.toFixed(2)} ב${CFG.channels[cpcRows[cpcRows.length-1].k].name}.`:".")});
+  const trendP = spendPrev ? ((spend-spendPrev)/spendPrev*100) : 0;
+  items.push({t:"🧭 מגמת הוצאות",
+    h:`ההוצאה ${trendP>=0?"עלתה":"ירדה"} ב-<b>${Math.abs(trendP).toFixed(1)}%</b> מול התקופה הקודמת (${money(spend)} בטווח הנוכחי).`});
+  document.getElementById("insights").innerHTML =
+    items.map(i=>`<div class="insight"><div class="ti">${i.t}</div>${i.h}</div>`).join("");
+}
+
+// range buttons
+const btns = [7,30,90].map(n=>{
+  const b = document.createElement("button");
+  b.className = "range-btn" + (n===range?" active":"");
+  b.textContent = n + " ימים";
+  b.onclick = ()=>{ range = n;
+    document.querySelectorAll(".range-btn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active"); render(); };
+  document.getElementById("rangeBtns").appendChild(b);
+  return b;
+});
+
+render();
+</script>
+</body>
+</html>
