@@ -4,6 +4,7 @@ import {
 } from "recharts";
 import { format, subDays } from "date-fns";
 import { supabase } from "../lib/supabase";
+import ShortsTable from "../components/ShortsTable";
 
 const RANGES = [7, 30, 90];
 const nf = (n) => (n || 0).toLocaleString("he-IL");
@@ -141,6 +142,8 @@ export default function Dashboard() {
           </tbody>
         </table>
       </div>
+
+      <ShortsTable />
     </div>
   );
 }

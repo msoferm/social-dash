@@ -146,3 +146,18 @@ button:disabled { opacity: .6; cursor: default; }
 .posts-table th, .posts-table td { text-align: right; padding: .5rem .6rem; border-bottom: 1px solid var(--border); }
 .posts-table th { color: var(--muted); font-weight: 600; }
 .post-title { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- shorts table ---------- */
+.shorts-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem; }
+.shorts-controls { display: flex; align-items: center; gap: .8rem; }
+.shorts-controls select { width: auto; }
+.chk { display: flex; align-items: center; gap: .35rem; font-size: .85rem; color: var(--muted); }
+.chk input { width: auto; }
+.shorts-summary { display: flex; gap: 1.2rem; flex-wrap: wrap; margin: .3rem 0 .8rem; font-size: .9rem; color: var(--muted); }
+.shorts-summary .org b { color: var(--accent-2); }
+.shorts-summary .paid b { color: #f59e0b; }
+.posts-table td.org { color: var(--accent-2); }
+.posts-table td.paid { color: #f59e0b; }
+.table-scroll { overflow-x: auto; }
+.posts-table a { color: var(--text); }
+.posts-table a:hover { color: var(--accent); }
