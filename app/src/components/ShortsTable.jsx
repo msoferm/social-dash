@@ -76,7 +76,7 @@ export default function ShortsTable() {
             <table className="posts-table">
               <thead>
                 <tr>
-                  <th>תאריך עלייה</th>
+                  <th>תאריך פרסום</th>
                   <th>כותרת</th>
                   <th>צפיות</th>
                   {hasPaidData && <th>אורגני</th>}
