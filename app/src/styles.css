@@ -77,8 +77,8 @@ button:disabled { opacity: .6; cursor: default; }
 .cal-weekday { text-align: center; color: var(--muted); font-size: .8rem; padding: .3rem 0; }
 .cal-cell {
   background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-  min-height: 108px; padding: .35rem; cursor: pointer; transition: border-color .15s;
-  display: flex; flex-direction: column;
+  aspect-ratio: 1 / 1; padding: .4rem; cursor: pointer; transition: border-color .15s;
+  display: flex; flex-direction: column; overflow: hidden;
 }
 .cal-cell:hover { border-color: var(--accent); }
 .cal-cell.muted { opacity: .45; }
@@ -92,6 +92,23 @@ button:disabled { opacity: .6; cursor: default; }
   padding: 2px 6px; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .chip.more { border: none; color: var(--muted); }
+
+/* view toggle (month/week) */
+.view-seg { display: inline-flex; margin-inline-start: .6rem; padding: 2px; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; }
+.view-seg button { background: transparent; color: var(--muted); padding: .3rem .7rem; font-size: .85rem; border-radius: 7px; }
+.view-seg button.active { background: var(--accent); color: #fff; }
+
+/* week view */
+.cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.week-col { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; min-height: 440px; display: flex; flex-direction: column; overflow: hidden; }
+.week-col.today { border-color: var(--accent-2); box-shadow: inset 0 0 0 1px var(--accent-2); }
+.week-col-head { display: flex; align-items: center; justify-content: space-between; padding: .5rem; background: var(--bg-2); border-bottom: 1px solid var(--border); cursor: pointer; font-size: .82rem; }
+.week-col-head:hover { color: var(--accent); }
+.week-col-body { flex: 1; padding: .4rem; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
+.week-item { background: var(--bg-2); border-right: 3px solid var(--muted); border-radius: 6px; padding: 5px 7px; font-size: .78rem; cursor: pointer; display: flex; gap: 6px; align-items: center; }
+.week-item:hover { outline: 1px solid var(--accent); }
+.week-thumb { width: 42px; height: 30px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+.week-item-txt { overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- drawer + modal ---------- */
 .drawer-overlay, .modal-overlay {

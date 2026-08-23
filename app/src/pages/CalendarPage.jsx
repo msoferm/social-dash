@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
-  startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths,
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, addWeeks,
   format, isSameMonth, isSameDay, parseISO,
 } from "date-fns";
 import { supabase } from "../lib/supabase";
@@ -36,29 +36,39 @@ export default function CalendarPage() {
   const [items, setItems] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [viewMode, setViewMode] = useState("month"); // month | week
 
-  const monthStart = startOfMonth(cursor);
-  const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-  const gridEnd = endOfWeek(endOfMonth(cursor), { weekStartsOn: 0 });
+  const rangeStart = viewMode === "month"
+    ? startOfWeek(startOfMonth(cursor), { weekStartsOn: 0 })
+    : startOfWeek(cursor, { weekStartsOn: 0 });
+  const rangeEnd = viewMode === "month"
+    ? endOfWeek(endOfMonth(cursor), { weekStartsOn: 0 })
+    : endOfWeek(cursor, { weekStartsOn: 0 });
+  const rangeStartStr = format(rangeStart, "yyyy-MM-dd");
+  const rangeEndStr = format(rangeEnd, "yyyy-MM-dd");
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
       .from("calendar_items")
       .select("*")
-      .gte("publish_date", format(gridStart, "yyyy-MM-dd"))
-      .lte("publish_date", format(gridEnd, "yyyy-MM-dd"))
+      .gte("publish_date", rangeStartStr)
+      .lte("publish_date", rangeEndStr)
       .order("publish_time", { ascending: true, nullsFirst: true });
     if (!error) setItems(data || []);
-  }, [gridStart, gridEnd]);
+  }, [rangeStartStr, rangeEndStr]);
 
   useEffect(() => { load(); }, [load]);
 
   const days = useMemo(() => {
     const arr = [];
-    let d = gridStart;
-    while (d <= gridEnd) { arr.push(d); d = addDays(d, 1); }
+    let d = rangeStart;
+    while (d <= rangeEnd) { arr.push(d); d = addDays(d, 1); }
     return arr;
-  }, [gridStart, gridEnd]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangeStartStr, rangeEndStr]);
+
+  const navigate = (dir) =>
+    setCursor(viewMode === "month" ? addMonths(cursor, dir) : addWeeks(cursor, dir));
 
   const itemsByDay = useMemo(() => {
     const m = {};
@@ -103,10 +113,18 @@ export default function CalendarPage() {
     <div className="calendar-wrap">
       <div className="cal-toolbar">
         <div className="cal-nav">
-          <button className="ghost" onClick={() => setCursor(addMonths(cursor, -1))}>‹</button>
-          <h2>{format(cursor, "MMMM yyyy")}</h2>
-          <button className="ghost" onClick={() => setCursor(addMonths(cursor, 1))}>›</button>
+          <button className="ghost" onClick={() => navigate(-1)}>‹</button>
+          <h2>
+            {viewMode === "month"
+              ? format(cursor, "MMMM yyyy")
+              : `${format(rangeStart, "d MMM")} – ${format(rangeEnd, "d MMM")}`}
+          </h2>
+          <button className="ghost" onClick={() => navigate(1)}>›</button>
           <button className="ghost" onClick={() => setCursor(new Date())}>היום</button>
+          <div className="seg view-seg">
+            <button type="button" className={viewMode === "month" ? "active" : ""} onClick={() => setViewMode("month")}>חודש</button>
+            <button type="button" className={viewMode === "week" ? "active" : ""} onClick={() => setViewMode("week")}>שבוע</button>
+          </div>
         </div>
         <div className="legend">
           {Object.entries(STATUS).map(([k, v]) => (
@@ -116,37 +134,74 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <div className="cal-grid">
-        {WEEKDAYS.map((w) => <div key={w} className="cal-weekday">{w}</div>)}
-        {days.map((d) => {
-          const key = format(d, "yyyy-MM-dd");
-          const dayList = itemsByDay[key] || [];
-          const muted = !isSameMonth(d, cursor);
-          const today = isSameDay(d, new Date());
-          return (
-            <div key={key} className={`cal-cell${muted ? " muted" : ""}${today ? " today" : ""}`}
-              onClick={() => setSelectedDay(key)}>
-              <div className="cal-cell-head">
-                <span>{format(d, "d")}</span>
-                <button className="add-mini"
-                  onClick={(e) => { e.stopPropagation(); setSelectedDay(key); setEditing(emptyEntry(key)); }}
-                  title="הוסף">＋</button>
+      {viewMode === "month" && (
+        <div className="cal-grid">
+          {WEEKDAYS.map((w) => <div key={w} className="cal-weekday">{w}</div>)}
+          {days.map((d) => {
+            const key = format(d, "yyyy-MM-dd");
+            const dayList = itemsByDay[key] || [];
+            const muted = !isSameMonth(d, cursor);
+            const today = isSameDay(d, new Date());
+            return (
+              <div key={key} className={`cal-cell${muted ? " muted" : ""}${today ? " today" : ""}`}
+                onClick={() => setSelectedDay(key)}>
+                <div className="cal-cell-head">
+                  <span>{format(d, "d")}</span>
+                  <button className="add-mini"
+                    onClick={(e) => { e.stopPropagation(); setSelectedDay(key); setEditing(emptyEntry(key)); }}
+                    title="הוסף">＋</button>
+                </div>
+                <div className="cal-chips">
+                  {dayList.slice(0, 4).map((it) => (
+                    <div key={it.id} className="chip" style={{ borderRightColor: chipColor(it) }}
+                      onClick={(e) => { e.stopPropagation(); setSelectedDay(key); setEditing(it); }}>
+                      {it.entry_type === "event" && "🎙️ "}
+                      {it.publish_time && <b>{it.publish_time.slice(0, 5)} </b>}
+                      {it.title}
+                    </div>
+                  ))}
+                  {dayList.length > 4 && <div className="chip more">+{dayList.length - 4} עוד</div>}
+                </div>
               </div>
-              <div className="cal-chips">
-                {dayList.slice(0, 4).map((it) => (
-                  <div key={it.id} className="chip" style={{ borderRightColor: chipColor(it) }}
-                    onClick={(e) => { e.stopPropagation(); setSelectedDay(key); setEditing(it); }}>
-                    {it.entry_type === "event" && "🎙️ "}
-                    {it.publish_time && <b>{it.publish_time.slice(0, 5)} </b>}
-                    {it.title}
-                  </div>
-                ))}
-                {dayList.length > 4 && <div className="chip more">+{dayList.length - 4} עוד</div>}
+            );
+          })}
+        </div>
+      )}
+
+      {viewMode === "week" && (
+        <div className="cal-week">
+          {days.map((d) => {
+            const key = format(d, "yyyy-MM-dd");
+            const dayList = itemsByDay[key] || [];
+            const today = isSameDay(d, new Date());
+            return (
+              <div key={key} className={`week-col${today ? " today" : ""}`}>
+                <div className="week-col-head" onClick={() => setEditing(emptyEntry(key))} title="הוסף">
+                  <span>{WEEKDAYS[d.getDay()]}׳ {format(d, "d/M")}</span>
+                  <span className="add-mini">＋</span>
+                </div>
+                <div className="week-col-body">
+                  {dayList.length === 0 && <span className="muted small">—</span>}
+                  {dayList.map((it) => {
+                    const thumb = ytThumb(it.youtube_url);
+                    return (
+                      <div key={it.id} className="week-item" style={{ borderRightColor: chipColor(it) }}
+                        onClick={() => setEditing(it)}>
+                        {thumb && <img className="week-thumb" src={thumb} alt="" />}
+                        <div className="week-item-txt">
+                          {it.entry_type === "event" && "🎙️ "}
+                          {it.publish_time && <b>{it.publish_time.slice(0, 5)} </b>}
+                          {it.title}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {selectedDay && (
         <DayPanel day={selectedDay} items={dayItems}
