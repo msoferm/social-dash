@@ -13,7 +13,7 @@ const CFG = JSON.parse(readFileSync(CFGPATH, "utf-8"));
 const YT = CFG.youtube;
 const PORT = 42813;
 const REDIRECT = `http://localhost:${PORT}`;
-const SCOPE = "https://www.googleapis.com/auth/yt-analytics.readonly";
+const SCOPE = "https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly";
 
 function saveCfg() {
   writeFileSync(CFGPATH, JSON.stringify(CFG, null, 2), "utf-8");
@@ -46,7 +46,7 @@ function getAuthCode() {
           response_type: "code",
           scope: SCOPE,
           access_type: "offline",
-          prompt: "consent",
+          prompt: "select_account consent",
         });
       console.log("\n🔓 פותח דפדפן לאישור... אם לא נפתח, פתח ידנית את הכתובת:\n" + authUrl + "\n");
       exec(`start "" "${authUrl}"`, () => {}); // Windows
