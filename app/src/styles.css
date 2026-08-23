@@ -122,6 +122,17 @@ button:disabled { opacity: .6; cursor: default; }
 .day-item:hover { border-color: var(--accent); }
 .day-item .dot { margin-top: 5px; }
 .di-title { font-size: .9rem; }
+.di-thumb { width: 56px; height: 42px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+
+/* segmented control (item / event) */
+.seg { display: flex; gap: .3rem; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-bottom: .3rem; }
+.seg button { flex: 1; background: transparent; color: var(--muted); padding: .45rem; }
+.seg button.active { background: var(--accent); color: #fff; }
+.add-row { display: flex; gap: .5rem; margin: .5rem 0; }
+.add-row button { flex: 1; }
+button.primary.event, .seg button.active.event { background: #a855f7; }
+.add-row button.event { background: #a855f7; }
+.yt-preview { width: 100%; max-width: 240px; border-radius: 8px; margin-top: .5rem; display: block; }
 
 /* ---------- dashboard ---------- */
 .dash-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
