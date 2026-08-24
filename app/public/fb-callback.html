@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>חיבור פייסבוק</title>
+  <style>
+    body { font-family: "Segoe UI", sans-serif; background: #0f1729; color: #e6ebf5;
+           display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    .card { background: #1b2740; border: 1px solid #26324d; border-radius: 14px; padding: 2rem;
+            max-width: 520px; text-align: center; }
+    h1 { font-size: 1.3rem; }
+    code { display: block; background: #0f1729; border: 1px solid #26324d; border-radius: 8px;
+           padding: .8rem; margin: 1rem 0; word-break: break-all; font-size: .8rem; direction: ltr; }
+    button { background: #3b82f6; color: #fff; border: none; border-radius: 10px;
+             padding: .6rem 1.2rem; font: inherit; cursor: pointer; }
+    .err { color: #fecaca; }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">טוען…</div>
+  <script>
+    const p = new URLSearchParams(location.search);
+    const code = p.get("code");
+    const err = p.get("error_description") || p.get("error");
+    const card = document.getElementById("card");
+    if (code) {
+      card.innerHTML =
+        '<h1>✅ ההרשאה אושרה!</h1>' +
+        '<p>העתק את הקוד הבא ושלח אותו ל-Claude:</p>' +
+        '<code id="c">' + code + '</code>' +
+        '<button onclick="navigator.clipboard.writeText(document.getElementById(\'c\').textContent);this.textContent=\'הועתק ✓\'">העתק קוד</button>';
+    } else {
+      card.innerHTML = '<h1 class="err">❌ שגיאה</h1><p>' + (err || "לא התקבל קוד") + "</p>";
+    }
+  </script>
+</body>
+</html>
