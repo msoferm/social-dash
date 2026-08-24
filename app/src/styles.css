@@ -166,6 +166,17 @@ button.primary.event, .seg button.active.event { background: #a855f7; }
 .card-value { font-size: 1.5rem; font-weight: 700; margin-top: .3rem; }
 
 .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; margin-bottom: 1.2rem; }
+/* per-channel breakdown */
+.chan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .8rem; }
+.chan-card { background: var(--bg-2); border: 1px solid var(--border); border-top: 3px solid var(--muted); border-radius: 12px; padding: .9rem; }
+.chan-head { display: flex; align-items: center; gap: .45rem; font-weight: 600; font-size: .92rem; margin-bottom: .7rem; }
+.chan-head i { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.chan-head span { margin-inline-end: auto; }
+.chan-stats { display: flex; justify-content: space-between; gap: .5rem; }
+.stat { text-align: center; flex: 1; }
+.stat-v { font-size: 1.15rem; font-weight: 700; }
+.stat-l { font-size: .72rem; color: var(--muted); margin-top: .15rem; }
+
 .channel-pills { display: flex; flex-wrap: wrap; gap: .5rem; }
 .channel-pill { display: flex; align-items: center; gap: .4rem; border: 1px solid var(--border); border-radius: 999px; padding: .3rem .8rem; font-size: .85rem; }
 .channel-pill i { width: 10px; height: 10px; border-radius: 50%; }

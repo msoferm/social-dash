@@ -29,6 +29,8 @@ export function ytThumb(url, quality = "mqdefault") {
 }
 
 const chipColor = (it) => (it.entry_type === "event" ? EVENT_COLOR : STATUS[it.status]?.color);
+const thumbOf = (it) => it.image_url || ytThumb(it.youtube_url);
+const SOURCE_ICON = { youtube: "▶️", facebook: "📘", instagram: "📸" };
 
 export default function CalendarPage() {
   const { user } = useAuth();
@@ -155,7 +157,7 @@ export default function CalendarPage() {
                   {dayList.slice(0, 4).map((it) => (
                     <div key={it.id} className="chip" style={{ borderRightColor: chipColor(it) }}
                       onClick={(e) => { e.stopPropagation(); setSelectedDay(key); setEditing(it); }}>
-                      {it.entry_type === "event" && "🎙️ "}
+                      {it.entry_type === "event" ? "🎙️ " : (SOURCE_ICON[it.source] ? SOURCE_ICON[it.source] + " " : "")}
                       {it.publish_time && <b>{it.publish_time.slice(0, 5)} </b>}
                       {it.title}
                     </div>
@@ -183,7 +185,7 @@ export default function CalendarPage() {
                 <div className="week-col-body">
                   {dayList.length === 0 && <span className="muted small">—</span>}
                   {dayList.map((it) => {
-                    const thumb = ytThumb(it.youtube_url);
+                    const thumb = thumbOf(it);
                     return (
                       <div key={it.id} className="week-item" style={{ borderRightColor: chipColor(it) }}
                         onClick={() => setEditing(it)}>
@@ -233,7 +235,7 @@ function DayPanel({ day, items, onClose, onAddItem, onAddEvent, onEdit }) {
         <div className="day-list">
           {items.length === 0 && <p className="muted">אין רשומות ליום זה.</p>}
           {items.map((it) => {
-            const thumb = ytThumb(it.youtube_url);
+            const thumb = thumbOf(it);
             return (
               <div key={it.id} className="day-item" onClick={() => onEdit(it)}>
                 {thumb

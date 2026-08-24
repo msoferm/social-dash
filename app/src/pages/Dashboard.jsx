@@ -56,6 +56,21 @@ export default function Dashboard() {
     return Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
   }, [metrics]);
 
+  // אגרגציה לכל ערוץ בנפרד
+  const byChannel = useMemo(() => {
+    const m = {};
+    for (const r of metrics) {
+      const c = (m[r.channel_key] ??= { reach: 0, engagement: 0, spend: 0, impressions: 0, clicks: 0, followers: 0 });
+      c.reach += Number(r.reach || 0);
+      c.engagement += Number(r.likes || 0) + Number(r.comments || 0) + Number(r.shares || 0);
+      c.spend += Number(r.spend || 0);
+      c.impressions += Number(r.impressions || 0);
+      c.clicks += Number(r.clicks || 0);
+      if (r.followers) c.followers = Number(r.followers);
+    }
+    return m;
+  }, [metrics]);
+
   const anyDemo = channels.some((c) => c.is_demo);
 
   if (loading) return <div className="center-pad">טוען נתונים…</div>;
@@ -88,6 +103,39 @@ export default function Dashboard() {
       </div>
 
       <div className="panel">
+        <h3>פילוח לפי ערוץ</h3>
+        <div className="chan-grid">
+          {channels.map((c) => {
+            const s = byChannel[c.key] || {};
+            return (
+              <div key={c.key} className="chan-card" style={{ borderTopColor: c.color }}>
+                <div className="chan-head">
+                  <i style={{ background: c.color }} />
+                  <span>{c.name}</span>
+                  {c.is_demo ? <em className="demo-tag">דמו</em> : <em className="live-badge">● מחובר</em>}
+                </div>
+                <div className="chan-stats">
+                  {c.kind === "paid" ? (
+                    <>
+                      <Stat label="הוצאה" v={`₪${nf(Math.round(s.spend || 0))}`} />
+                      <Stat label="הצגות" v={nf(s.impressions)} />
+                      <Stat label="קליקים" v={nf(s.clicks)} />
+                    </>
+                  ) : (
+                    <>
+                      <Stat label="עוקבים" v={nf(s.followers)} />
+                      <Stat label="חשיפה" v={nf(s.reach)} />
+                      <Stat label="אינטראקציות" v={nf(s.engagement)} />
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="panel">
         <h3>מגמה יומית — חשיפה מול הוצאה</h3>
         <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={series} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -106,19 +154,6 @@ export default function Dashboard() {
             <Area type="monotone" dataKey="spend" name="הוצאה ₪" stroke="#f59e0b" fill="none" />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
-
-      <div className="panel">
-        <h3>ערוצים</h3>
-        <div className="channel-pills">
-          {channels.map((c) => (
-            <span key={c.key} className="channel-pill" style={{ borderColor: c.color }}>
-              <i style={{ background: c.color }} />
-              {c.name}
-              {c.is_demo ? <em className="demo-tag">דמו</em> : <em className="live-badge">● מחובר</em>}
-            </span>
-          ))}
-        </div>
       </div>
 
       <div className="panel">
@@ -153,6 +188,15 @@ function Card({ title, value }) {
     <div className="card">
       <div className="card-title">{title}</div>
       <div className="card-value">{value}</div>
+    </div>
+  );
+}
+
+function Stat({ label, v }) {
+  return (
+    <div className="stat">
+      <div className="stat-v">{v}</div>
+      <div className="stat-l">{label}</div>
     </div>
   );
 }
