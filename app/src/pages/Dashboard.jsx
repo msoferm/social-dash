@@ -8,6 +8,8 @@ import ShortsTable from "../components/ShortsTable";
 
 const RANGES = [7, 30, 90];
 const nf = (n) => (n || 0).toLocaleString("he-IL");
+const SYM = { USD: "$", ILS: "₪", EUR: "€", GBP: "£" };
+const sym = (c) => SYM[c] || c || "₪";
 
 export default function Dashboard() {
   const [range, setRange] = useState(30);
@@ -60,18 +62,20 @@ export default function Dashboard() {
   const byChannel = useMemo(() => {
     const m = {};
     for (const r of metrics) {
-      const c = (m[r.channel_key] ??= { reach: 0, engagement: 0, spend: 0, impressions: 0, clicks: 0, followers: 0 });
+      const c = (m[r.channel_key] ??= { reach: 0, engagement: 0, spend: 0, impressions: 0, clicks: 0, conversions: 0, followers: 0 });
       c.reach += Number(r.reach || 0);
       c.engagement += Number(r.likes || 0) + Number(r.comments || 0) + Number(r.shares || 0);
       c.spend += Number(r.spend || 0);
       c.impressions += Number(r.impressions || 0);
       c.clicks += Number(r.clicks || 0);
+      c.conversions += Number(r.conversions || 0);
       if (r.followers) c.followers = Number(r.followers);
     }
     return m;
   }, [metrics]);
 
   const anyDemo = channels.some((c) => c.is_demo);
+  const paidCur = channels.find((c) => c.kind === "paid" && !c.is_demo)?.currency || "₪";
 
   if (loading) return <div className="center-pad">טוען נתונים…</div>;
 
@@ -95,11 +99,11 @@ export default function Dashboard() {
       )}
 
       <div className="cards">
-        <Card title="הוצאת פרסום" value={`₪${nf(Math.round(totals.spend))}`} />
+        <Card title="הוצאת פרסום" value={`${sym(paidCur)}${nf(Math.round(totals.spend))}`} />
         <Card title="חשיפה אורגנית" value={nf(totals.reach)} />
         <Card title="אינטראקציות" value={nf(totals.engagement)} />
         <Card title="קליקים" value={nf(totals.clicks)} />
-        <Card title="המרות" value={nf(totals.conversions)} />
+        <Card title="תוצאות (מטרת קמפיין)" value={nf(totals.conversions)} />
       </div>
 
       <div className="panel">
@@ -117,9 +121,9 @@ export default function Dashboard() {
                 <div className="chan-stats">
                   {c.kind === "paid" ? (
                     <>
-                      <Stat label="הוצאה" v={`₪${nf(Math.round(s.spend || 0))}`} />
+                      <Stat label="הוצאה" v={`${sym(c.currency)}${nf(Math.round(s.spend || 0))}`} />
                       <Stat label="הצגות" v={nf(s.impressions)} />
-                      <Stat label="קליקים" v={nf(s.clicks)} />
+                      <Stat label="תוצאות" v={nf(s.conversions || 0)} />
                     </>
                   ) : (
                     <>
