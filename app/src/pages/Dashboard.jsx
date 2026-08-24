@@ -16,20 +16,28 @@ export default function Dashboard() {
   const [channels, setChannels] = useState([]);
   const [metrics, setMetrics] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [ytAds, setYtAds] = useState({ paid: 0, organic: 0, promoted: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       const since = format(subDays(new Date(), range), "yyyy-MM-dd");
-      const [ch, mt, ps] = await Promise.all([
+      const [ch, mt, ps, yv] = await Promise.all([
         supabase.from("channels").select("*").eq("enabled", true).order("sort_order"),
         supabase.from("metrics_daily").select("*").gte("date", since).order("date"),
         supabase.from("posts").select("*").order("reach", { ascending: false }).limit(10),
+        supabase.from("yt_videos").select("paid_views,organic_views"),
       ]);
       setChannels(ch.data || []);
       setMetrics(mt.data || []);
       setPosts(ps.data || []);
+      const yt = (yv.data || []).reduce((a, v) => ({
+        paid: a.paid + (v.paid_views || 0),
+        organic: a.organic + (v.organic_views || 0),
+        promoted: a.promoted + (v.paid_views > 0 ? 1 : 0),
+      }), { paid: 0, organic: 0, promoted: 0 });
+      setYtAds(yt);
       setLoading(false);
     })();
   }, [range]);
@@ -75,7 +83,8 @@ export default function Dashboard() {
   }, [metrics]);
 
   const anyDemo = channels.some((c) => c.is_demo);
-  const paidCur = channels.find((c) => c.kind === "paid" && !c.is_demo)?.currency || "₪";
+  const fbAds = byChannel["facebookAds"] || { spend: 0, impressions: 0, clicks: 0, conversions: 0 };
+  const fbCur = channels.find((c) => c.key === "facebookAds")?.currency || "$";
 
   if (loading) return <div className="center-pad">טוען נתונים…</div>;
 
@@ -98,12 +107,23 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="cards">
-        <Card title="הוצאת פרסום" value={`${sym(paidCur)}${nf(Math.round(totals.spend))}`} />
-        <Card title="חשיפה אורגנית" value={nf(totals.reach)} />
-        <Card title="אינטראקציות" value={nf(totals.engagement)} />
-        <Card title="קליקים" value={nf(totals.clicks)} />
-        <Card title="תוצאות (מטרת קמפיין)" value={nf(totals.conversions)} />
+      <div className="ad-block">
+        <h4 className="ad-title">📘 פרסום בפייסבוק</h4>
+        <div className="cards">
+          <Card title="הוצאה" value={`${sym(fbCur)}${nf(Math.round(fbAds.spend))}`} />
+          <Card title="הצגות" value={nf(fbAds.impressions)} />
+          <Card title="קליקים" value={nf(fbAds.clicks)} />
+          <Card title="תוצאות (מטרת קמפיין)" value={nf(fbAds.conversions)} />
+        </div>
+      </div>
+
+      <div className="ad-block">
+        <h4 className="ad-title">🎬 פרסום ביוטיוב</h4>
+        <div className="cards">
+          <Card title="צפיות ממומנות" value={nf(ytAds.paid)} />
+          <Card title="צפיות אורגניות" value={nf(ytAds.organic)} />
+          <Card title="סרטונים שקודמו" value={nf(ytAds.promoted)} />
+        </div>
       </div>
 
       <div className="panel">
