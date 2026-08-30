@@ -1,0 +1,35 @@
+name: Daily Sync
+
+on:
+  schedule:
+    - cron: "0 4 * * *" # 04:00 UTC ≈ 07:00 בישראל
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Write api_config.json
+        run: printf '%s' "$API_CONFIG_JSON" > api_config.json
+        env:
+          API_CONFIG_JSON: ${{ secrets.API_CONFIG_JSON }}
+      - name: Install deps
+        working-directory: ingestion
+        run: npm install
+      - name: Run sync scripts
+        working-directory: ingestion
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node sync_youtube_calendar.mjs || true
+          node fetch_youtube_videos.mjs || true
+          node fetch_youtube_daily.mjs || true
+          node fetch_facebook.mjs || true
+          node fetch_instagram.mjs || true
+          node sync_meta_calendar.mjs || true
+          node fetch_facebook_ads.mjs || true

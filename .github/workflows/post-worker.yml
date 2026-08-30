@@ -1,0 +1,28 @@
+name: Post Worker
+
+on:
+  schedule:
+    - cron: "*/15 * * * *" # כל 15 דקות
+  workflow_dispatch: {}
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Write api_config.json
+        run: printf '%s' "$API_CONFIG_JSON" > api_config.json
+        env:
+          API_CONFIG_JSON: ${{ secrets.API_CONFIG_JSON }}
+      - name: Install deps
+        working-directory: ingestion
+        run: npm install
+      - name: Run post worker
+        working-directory: ingestion
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node post_worker.mjs
