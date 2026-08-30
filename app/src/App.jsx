@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import CalendarPage from "./pages/CalendarPage";
+import ComposePost from "./pages/ComposePost";
 
 function Protected({ children }) {
   const { session, loading } = useAuth();
@@ -27,6 +28,7 @@ export default function App() {
       >
         <Route index element={<CalendarPage />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="compose" element={<ComposePost />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

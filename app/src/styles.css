@@ -202,3 +202,11 @@ button.primary.event, .seg button.active.event { background: #a855f7; }
 .table-scroll { overflow-x: auto; }
 .posts-table a { color: var(--text); }
 .posts-table a:hover { color: var(--accent); }
+
+/* compose post */
+.compose-form { display: flex; flex-direction: column; }
+.compose-form label { font-size: .82rem; color: var(--muted); margin: .8rem 0 .25rem; }
+.compose-form button.primary { margin-top: 1rem; align-self: flex-start; padding: .6rem 1.5rem; }
+.ok-msg { color: #a7f3d0; background: #064e3b55; padding: .5rem .7rem; border-radius: 8px; font-size: .88rem; margin-top: .6rem; }
+.pill-status { color: #fff; padding: 2px 10px; border-radius: 999px; font-size: .75rem; white-space: nowrap; }
+.small-btn { padding: .25rem .6rem; font-size: .78rem; }

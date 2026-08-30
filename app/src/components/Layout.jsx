@@ -10,6 +10,7 @@ export default function Layout() {
         <nav className="topnav">
           <NavLink to="/" end>לוח תוכן</NavLink>
           <NavLink to="/dashboard">אנליטיקס</NavLink>
+          <NavLink to="/compose">פוסט חדש</NavLink>
         </nav>
         <div className="user-box">
           <span className="muted small">{profile?.full_name || user?.email}</span>
