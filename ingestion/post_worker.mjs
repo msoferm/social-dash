@@ -31,7 +31,10 @@ async function createPost(p) {
   const timing = immediate ? { published: "true" } : { published: "false", scheduled_publish_time: String(Math.floor(when / 1000)) };
 
   let res, fbId;
-  if (p.image_url) {
+  if (p.media_type === "video" && p.image_url) {
+    res = await post(`${PID}/videos`, { file_url: p.image_url, description: p.message || "", ...timing });
+    fbId = res.id; // video id — ניתן להגיב עליו
+  } else if (p.image_url) {
     res = await post(`${PID}/photos`, { url: p.image_url, caption: p.message || "", ...timing });
     fbId = res.post_id || res.id;
   } else {
@@ -39,6 +42,17 @@ async function createPost(p) {
     fbId = res.id;
   }
   return { fbId, immediate };
+}
+
+// מחיקת מדיה מ-Storage אחרי יומיים
+async function cleanupMedia() {
+  const cutoff = new Date(Date.now() - 2 * 86400000).toISOString();
+  const { data } = await db.from("scheduled_posts").select("id,media_path").not("media_path", "is", null).lt("created_at", cutoff);
+  for (const o of data || []) {
+    await db.storage.from("post-media").remove([o.media_path]);
+    await db.from("scheduled_posts").update({ media_path: null }).eq("id", o.id);
+    console.log(`🗑 נמחקה מדיה של פוסט ${o.id}`);
+  }
 }
 
 async function main() {
@@ -68,6 +82,7 @@ async function main() {
       console.log(`✗ פוסט ${p.id}:`, e.message);
     }
   }
+  await cleanupMedia();
   console.log(`(${nowIso}) עובדו ${rows?.length || 0} רשומות`);
 }
 
