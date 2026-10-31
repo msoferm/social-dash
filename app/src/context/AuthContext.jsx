@@ -38,6 +38,8 @@ export function AuthProvider({ children }) {
     user: session?.user ?? null,
     profile,
     isAdmin: profile?.role === "admin",
+    // viewer = צפייה בלבד (נאכף גם ב-RLS)
+    canEdit: profile?.role === "admin" || profile?.role === "member",
     loading,
     signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
     signOut: () => supabase.auth.signOut(),

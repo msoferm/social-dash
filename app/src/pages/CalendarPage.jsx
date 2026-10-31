@@ -33,7 +33,7 @@ const thumbOf = (it) => it.image_url || ytThumb(it.youtube_url);
 const SOURCE_ICON = { youtube: "▶️", facebook: "📘", instagram: "📸" };
 
 export default function CalendarPage() {
-  const { user } = useAuth();
+  const { user, canEdit } = useAuth();
   const [cursor, setCursor] = useState(new Date());
   const [items, setItems] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -149,9 +149,9 @@ export default function CalendarPage() {
                 onClick={() => setSelectedDay(key)}>
                 <div className="cal-cell-head">
                   <span>{format(d, "d")}</span>
-                  <button className="add-mini"
+                  {canEdit && <button className="add-mini"
                     onClick={(e) => { e.stopPropagation(); setSelectedDay(key); setEditing(emptyEntry(key)); }}
-                    title="הוסף">＋</button>
+                    title="הוסף">＋</button>}
                 </div>
                 <div className="cal-chips">
                   {dayList.slice(0, 4).map((it) => (
@@ -178,9 +178,10 @@ export default function CalendarPage() {
             const today = isSameDay(d, new Date());
             return (
               <div key={key} className={`week-col${today ? " today" : ""}`}>
-                <div className="week-col-head" onClick={() => setEditing(emptyEntry(key))} title="הוסף">
+                <div className="week-col-head" onClick={canEdit ? () => setEditing(emptyEntry(key)) : undefined}
+                  title={canEdit ? "הוסף" : undefined}>
                   <span>{WEEKDAYS[d.getDay()]}׳ {format(d, "d/M")}</span>
-                  <span className="add-mini">＋</span>
+                  {canEdit && <span className="add-mini">＋</span>}
                 </div>
                 <div className="week-col-body">
                   {dayList.length === 0 && <span className="muted small">—</span>}
@@ -206,7 +207,7 @@ export default function CalendarPage() {
       )}
 
       {selectedDay && (
-        <DayPanel day={selectedDay} items={dayItems}
+        <DayPanel day={selectedDay} items={dayItems} canEdit={canEdit}
           onClose={() => setSelectedDay(null)}
           onAddItem={() => setEditing(emptyEntry(selectedDay, "item"))}
           onAddEvent={() => setEditing(emptyEntry(selectedDay, "event"))}
@@ -214,13 +215,13 @@ export default function CalendarPage() {
       )}
 
       {editing && (
-        <ItemModal item={editing} onClose={() => setEditing(null)} onSave={saveItem} onDelete={removeItem} />
+        <ItemModal item={editing} readOnly={!canEdit} onClose={() => setEditing(null)} onSave={saveItem} onDelete={removeItem} />
       )}
     </div>
   );
 }
 
-function DayPanel({ day, items, onClose, onAddItem, onAddEvent, onEdit }) {
+function DayPanel({ day, items, canEdit, onClose, onAddItem, onAddEvent, onEdit }) {
   return (
     <div className="drawer-overlay" onClick={onClose}>
       <aside className="drawer" onClick={(e) => e.stopPropagation()}>
@@ -228,10 +229,12 @@ function DayPanel({ day, items, onClose, onAddItem, onAddEvent, onEdit }) {
           <h3>{format(parseISO(day), "EEEE, d בMMMM")}</h3>
           <button className="ghost" onClick={onClose}>✕</button>
         </div>
-        <div className="add-row">
-          <button className="primary" onClick={onAddItem}>📹 אייטם</button>
-          <button className="primary event" onClick={onAddEvent}>🎙️ אירוע</button>
-        </div>
+        {canEdit && (
+          <div className="add-row">
+            <button className="primary" onClick={onAddItem}>📹 אייטם</button>
+            <button className="primary event" onClick={onAddEvent}>🎙️ אירוע</button>
+          </div>
+        )}
         <div className="day-list">
           {items.length === 0 && <p className="muted">אין רשומות ליום זה.</p>}
           {items.map((it) => {
@@ -261,7 +264,7 @@ function DayPanel({ day, items, onClose, onAddItem, onAddEvent, onEdit }) {
   );
 }
 
-function ItemModal({ item, onClose, onSave, onDelete }) {
+function ItemModal({ item, readOnly, onClose, onSave, onDelete }) {
   const [form, setForm] = useState(item);
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
   const isEvent = form.entry_type === "event";
@@ -271,18 +274,19 @@ function ItemModal({ item, onClose, onSave, onDelete }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="drawer-head">
-          <h3>{form.id ? "עריכה" : isEvent ? "אירוע חדש" : "אייטם חדש"}</h3>
+          <h3>{readOnly ? "צפייה" : form.id ? "עריכה" : isEvent ? "אירוע חדש" : "אייטם חדש"}</h3>
           <button className="ghost" onClick={onClose}>✕</button>
         </div>
 
-        <div className="seg">
+        {!readOnly && <div className="seg">
           <button type="button" className={!isEvent ? "active" : ""}
             onClick={() => setForm({ ...form, entry_type: "item" })}>📹 אייטם</button>
           <button type="button" className={isEvent ? "active" : ""}
             onClick={() => setForm({ ...form, entry_type: "event", item_type: form.item_type || "ראיון" })}>🎙️ אירוע</button>
-        </div>
+        </div>}
 
-        <form onSubmit={(e) => { e.preventDefault(); if (form.title.trim()) onSave(form); }}>
+        <form onSubmit={(e) => { e.preventDefault(); if (!readOnly && form.title.trim()) onSave(form); }}>
+          <fieldset disabled={readOnly} style={{ border: 0, padding: 0, margin: 0 }}>
           <label>{isEvent ? "שם האירוע *" : "כותרת האייטם *"}</label>
           <input value={form.title} onChange={set("title")} required autoFocus />
 
@@ -347,12 +351,13 @@ function ItemModal({ item, onClose, onSave, onDelete }) {
 
           <label>הערות</label>
           <textarea value={form.notes || ""} onChange={set("notes")} rows={3} />
+          </fieldset>
 
           <div className="modal-actions">
-            {form.id && <button type="button" className="danger" onClick={() => onDelete(form.id)}>מחיקה</button>}
+            {!readOnly && form.id && <button type="button" className="danger" onClick={() => onDelete(form.id)}>מחיקה</button>}
             <span style={{ flex: 1 }} />
-            <button type="button" className="ghost" onClick={onClose}>ביטול</button>
-            <button type="submit" className="primary">שמירה</button>
+            <button type="button" className="ghost" onClick={onClose}>{readOnly ? "סגירה" : "ביטול"}</button>
+            {!readOnly && <button type="submit" className="primary">שמירה</button>}
           </div>
         </form>
       </div>

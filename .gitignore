@@ -13,3 +13,6 @@ __pycache__/
 # ===== מערכת =====
 .DS_Store
 Thumbs.db
+
+# Supabase CLI link state
+supabase/.temp/

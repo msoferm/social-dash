@@ -20,7 +20,7 @@ const defaultTime = () => {
 };
 
 export default function ComposePost() {
-  const { user } = useAuth();
+  const { user, canEdit } = useAuth();
   const [form, setForm] = useState({ message: "", link: "", first_comment: "", scheduled_time: defaultTime() });
   const [file, setFile] = useState(null);
   const [rows, setRows] = useState([]);
@@ -81,7 +81,7 @@ export default function ComposePost() {
 
   return (
     <div className="compose">
-      <form className="panel compose-form" onSubmit={submit}>
+      {canEdit && <form className="panel compose-form" onSubmit={submit}>
         <h2>✍️ פוסט חדש לפייסבוק</h2>
 
         <label>טקסט הפוסט</label>
@@ -103,7 +103,7 @@ export default function ComposePost() {
 
         {msg && <div className={msg.startsWith("✅") ? "ok-msg" : "error"}>{msg}</div>}
         <button className="primary" disabled={busy}>{busy ? "שומר…" : "תזמן פוסט"}</button>
-      </form>
+      </form>}
 
       <div className="panel">
         <h3>פוסטים מתוזמנים ({rows.length})</h3>
@@ -120,7 +120,7 @@ export default function ComposePost() {
                     <td className="post-title">{p.first_comment ? "🔗 " + p.first_comment : "—"}</td>
                     <td><span className="pill-status" style={{ background: st.color }}>{st.label}</span>
                       {p.status === "error" && p.error && <div className="muted small">{p.error}</div>}</td>
-                    <td>{["pending", "error", "done", "canceled"].includes(p.status) &&
+                    <td>{canEdit && ["pending", "error", "done", "canceled"].includes(p.status) &&
                       <button className="ghost small-btn" onClick={() => cancel(p.id)}>מחק</button>}</td>
                   </tr>
                 );

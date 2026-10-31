@@ -12,9 +12,11 @@ export default function Login() {
     e.preventDefault();
     setErr("");
     setBusy(true);
-    const { error } = await signIn(email, password);
+    // שם משתמש בלי @ ממופה לכתובת פנימית (Supabase Auth דורש אימייל)
+    const login = email.trim().toLowerCase();
+    const { error } = await signIn(login.includes("@") ? login : `${login}@users.social-dash.local`, password);
     setBusy(false);
-    if (error) setErr("אימייל או סיסמה שגויים");
+    if (error) setErr("שם משתמש או סיסמה שגויים");
   }
 
   return (
@@ -22,8 +24,8 @@ export default function Login() {
       <form className="login-card" onSubmit={submit}>
         <h1>📊 דאשבורד שיווק</h1>
         <p className="muted">התחברות למערכת</p>
-        <label>אימייל</label>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+        <label>אימייל או שם משתמש</label>
+        <input type="text" autoComplete="username" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
         <label>סיסמה</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         {err && <div className="error">{err}</div>}
